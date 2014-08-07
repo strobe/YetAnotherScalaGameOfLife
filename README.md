@@ -15,3 +15,6 @@ Save universe state  = menu Commands -> Save State
 Load universe state  = menu Commands -> Load State 
 
 Reset universe state = menu Commands -> Reset 
+
+## Compiled 
+see repository releases page
