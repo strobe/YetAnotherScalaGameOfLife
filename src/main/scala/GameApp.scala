@@ -102,6 +102,7 @@ object GameApp extends SimpleSwingApplication {
       contents += new MenuItem(Action("Reset Board") {
         life_board = new LifeGame.Board()
         panel.repaint()
+        initializeLife()
       })
       contents += new Separator
       val a = new MenuItem(Action("zoom: 1") { plot_scale = 1 })
