@@ -51,6 +51,7 @@ object LifeGame {
     for (i <- mouseClicks) {
       newBoard.add(i)
     }
+    mouseClicks = List()
 
     newBoard
   }
