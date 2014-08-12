@@ -1,11 +1,16 @@
 //  Graphics is forked from github.com/petrifast/scala-snippets/scala-buffered-animation-sample
 
+import java.awt._
 import java.awt.event.{ActionEvent, ActionListener}
 import java.io.{FileInputStream, ObjectInputStream, ObjectOutputStream, FileOutputStream}
+import scala.swing.Menu
+import scala.swing.MenuBar
+import scala.swing.MenuItem
+import scala.swing.Panel
+import scala.swing.Rectangle
 import scala.swing.event.{ MouseWheelMoved, MousePressed}
 import scala.swing._
 import javax.swing.Timer
-import java.awt.{Font, Color, Graphics2D, Dimension}
 
 import java.awt.image._
 
@@ -23,7 +28,7 @@ object GameApp extends SimpleSwingApplication {
 
   var life_board: LifeGame.Board = null
 
-  var plot_scale: Int = 1
+  var plot_scale: Int = 7
 
   var isStarted: Boolean = false
 
@@ -35,7 +40,7 @@ object GameApp extends SimpleSwingApplication {
   }
 
   def initializeLife() {
-    life_board = BoardConfiguration.bigBoard.clone()
+    life_board = BoardConfiguration.gliderGUn.clone()
   }
 
   def initializeConvolveKernel() {
@@ -105,9 +110,9 @@ object GameApp extends SimpleSwingApplication {
         initializeLife()
       })
       contents += new Separator
-      val a = new MenuItem(Action("zoom: 1") { plot_scale = 1 })
-      val b = new MenuItem(Action("zoom: 2") { plot_scale = 2 })
-      val c = new MenuItem(Action("zoom: 3") { plot_scale = 3 })
+      val a = new MenuItem(Action("zoom: 2") { plot_scale = 2 })
+      val b = new MenuItem(Action("zoom: 5") { plot_scale = 5 })
+      val c = new MenuItem(Action("zoom: 7") { plot_scale = 7 })
       val mutex = new ButtonGroup(a,b,c)
       contents ++= mutex.buttons
     }
@@ -136,15 +141,64 @@ object GameApp extends SimpleSwingApplication {
     }
 
     private def wheelMoved(r: Int) = {
-      val zoomLimit = 8
-      if (plot_scale + r > 0 && plot_scale + r < zoomLimit) plot_scale += r
+      val hiZoomLimit = 8
+      val lowZoomLimit = 0
+      if (plot_scale + r > lowZoomLimit && plot_scale + r < hiZoomLimit) {
+        plot_scale += r
+      }
     }
 
     override def paintComponent(g: Graphics2D) {
+      g.drawImage(image, 0, 0, null)
+//      plotRasterGrid(g)
       drawLife()
-      g.drawImage(image, 0, 0, null);
+      //plotGrid(g)
       plotFPS(g)
       framecount += 1
+    }
+
+
+//    def plotGrid(g: Graphics2D) {
+//      val w:Int = size.width
+//      val h:Int = size.height
+//
+//      val sizeInPixels  = 1*plot_scale
+//      val vCount = w / sizeInPixels
+//      val hCount = h / sizeInPixels
+//
+//
+//      g.setColor(Color.darkGray)
+//
+//      for(i <- 0 to vCount.toInt; j <- 0 to hCount.toInt)
+//      {
+//        val grid: Rectangle = new Rectangle((x_offset*w).toInt + i*plot_scale * sizeInPixels/plot_scale,
+//                                            (x_offset*w).toInt + j*plot_scale * sizeInPixels/plot_scale,
+//                                             sizeInPixels, sizeInPixels)
+//        g.draw(grid)
+//      }
+//    }
+
+    def drawGrid(data: Array[Int]) = {
+      val w:Int = size.width
+      val h:Int = size.height
+      val color             = 0x25   // 8 bit color value
+      val cellSizeInPixels  = 1 * plot_scale
+      val vCount            = (w / cellSizeInPixels) - 1
+      val hCount            = (h / cellSizeInPixels) - 1
+
+      for(i <- 0 to vCount.toInt; j <- 0 to hCount.toInt) {  // grid cells
+        val x: Int = plot_scale * i
+        val y: Int = plot_scale * j
+
+        for (l <- 0 to plot_scale) {  // grid x&y lines after zero point
+          if ((x + l) < w - 1) {      // horizontal
+            data(y*w + x + l) = color
+          }
+          if ((y + l) < h - 1) {      // vertical
+            data((y+l)*w + x) = color
+          }
+        }
+      }
     }
 
     def drawLife() {
@@ -156,7 +210,9 @@ object GameApp extends SimpleSwingApplication {
         image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY)
       }
 
-      var data: Array[Int] = Array.fill(w * h)(0);
+      var data: Array[Int] = Array.fill(w * h)(0)
+      drawGrid(data)
+
       for( (xp,yp) <- life_board) {
         for( i <- 0 until plot_scale; j <- 0 until plot_scale) {
           val x: Int =  (x_offset*w).toInt + xp*plot_scale + i
@@ -167,7 +223,8 @@ object GameApp extends SimpleSwingApplication {
           }
         }
       }
-      image.getRaster().setPixels(0, 0, w, h, data);
+
+      image.getRaster().setPixels(0, 0, w, h, data)
     }
 
     def plotFPS(g: Graphics2D) {
@@ -188,6 +245,8 @@ object GameApp extends SimpleSwingApplication {
           g.drawString("FPS: " + fps, size.width - 120, size.height - 10);
       }
     }
+
+
   } //end Panel 
 
 

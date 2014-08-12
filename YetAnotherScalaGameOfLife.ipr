@@ -206,52 +206,35 @@
       <CLASSES>
         <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-actor_2.10/jars/akka-actor_2.10-2.3.2.jar!/" />
       </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-actor_2.10/docs/akka-actor_2.10-2.3.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-actor_2.10/srcs/akka-actor_2.10-2.3.2-sources.jar!/" />
-      </SOURCES>
+      <JAVADOC />
+      <SOURCES />
     </library>
     <library name="SBT: com.typesafe:config:1.2.0">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/jars/config-1.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/bundles/config-1.2.0.jar!/" />
       </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/docs/config-1.2.0-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/srcs/config-1.2.0-sources.jar!/" />
-      </SOURCES>
+      <JAVADOC />
+      <SOURCES />
     </library>
     <library name="SBT: org.scala-lang:scala-library:2.10.3">
       <CLASSES>
         <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.10.3.jar!/" />
-        <root url="jar://$USER_HOME$/Library/Caches/IntelliJIdea13/sbt/boot/scala-2.10.3/lib/scala-library.jar!/" />
       </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/docs/scala-library-2.10.3-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/srcs/scala-library-2.10.3-sources.jar!/" />
-      </SOURCES>
+      <JAVADOC />
+      <SOURCES />
     </library>
     <library name="SBT: org.scala-lang:scala-swing:2.10.2">
       <CLASSES>
         <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-swing/jars/scala-swing-2.10.2.jar!/" />
       </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-swing/docs/scala-swing-2.10.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-swing/srcs/scala-swing-2.10.2-sources.jar!/" />
-      </SOURCES>
+      <JAVADOC />
+      <SOURCES />
     </library>
     <library name="SBT:: scala-compiler-bundle:2.10.3">
       <CLASSES>
-        <root url="jar://$USER_HOME$/Library/Caches/IntelliJIdea13/sbt/boot/scala-2.10.3/lib/scala-compiler.jar!/" />
-        <root url="jar://$USER_HOME$/Library/Caches/IntelliJIdea13/sbt/boot/scala-2.10.3/lib/scala-library.jar!/" />
-        <root url="jar://$USER_HOME$/Library/Caches/IntelliJIdea13/sbt/boot/scala-2.10.3/lib/scala-reflect.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.10.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.10.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-compiler/jars/scala-compiler-2.10.3.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />
