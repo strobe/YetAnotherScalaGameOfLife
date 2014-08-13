@@ -22,10 +22,10 @@ object Mode extends Enumeration {
 object GameApp extends SimpleSwingApplication {
   import Mode._
 
-  var x_offset: Int = 0
-  var y_offset: Int = 0
+  var xOffset: Int = 0
+  var yOffset: Int = 0
 
-  var delay_ms   = 20 // NOTE: delay between frames
+  var delayMs    = 20 // NOTE: delay between frames
   var framecount = 0
   var fps        = 0
   var image: BufferedImage = null
@@ -33,9 +33,9 @@ object GameApp extends SimpleSwingApplication {
   var kernel: Kernel       = null
   var convolve: ConvolveOp = null
 
-  var life_board: LifeGame.Board = null
+  var lifeBoard: LifeGame.Board = null
 
-  var plot_scale: Int = 7
+  var plotScale: Int = 7
 
   var isSimStarted: Boolean = false
   var mode: Mode            = Drawing
@@ -48,7 +48,7 @@ object GameApp extends SimpleSwingApplication {
   }
 
   def initializeLife() {
-    life_board = BoardConfiguration.gliderGun.clone()
+    lifeBoard = BoardConfiguration.gliderGun.clone()
   }
 
   def initializeConvolveKernel() {
@@ -59,13 +59,13 @@ object GameApp extends SimpleSwingApplication {
   }
 
   //..Timers: These generate the events that drive the animation
-  val repainter = new Timer(delay_ms, new ActionListener {
+  val repainter = new Timer(delayMs, new ActionListener {
     def actionPerformed(e: ActionEvent) {
       panel.repaint()
 
       mode match {
-        case Drawing    => life_board = LifeGame.computePaintedCells(life_board)
-        case Simulation => life_board = LifeGame.computeNextGeneration(life_board)
+        case Drawing    => lifeBoard = LifeGame.computePaintedCells(lifeBoard)
+        case Simulation => lifeBoard = LifeGame.computeNextGeneration(lifeBoard)
       }
     }
   })
@@ -103,46 +103,46 @@ object GameApp extends SimpleSwingApplication {
 
     contents += new Menu("Commands") {
       contents += new MenuItem(Action("Save State"){
-        write(life_board)
+        write(lifeBoard)
       })
       contents += new MenuItem(Action("Load State") {
-        life_board = try { read().asInstanceOf[LifeGame.Board] }
+        lifeBoard = try { read().asInstanceOf[LifeGame.Board] }
       })
       contents += new Separator
       contents += new MenuItem(Action("Reset Board Offset") {
-        x_offset = 0
-        y_offset = 0
+        xOffset = 0
+        yOffset = 0
         panel.repaint()
       })
       contents += new Separator
       contents += new MenuItem(Action("Reset Board") {
-        life_board = new LifeGame.Board()
+        lifeBoard = new LifeGame.Board()
         panel.repaint()
         initializeLife()
       })
       contents += new Separator
       contents += new MenuItem(Action("Clear Board") {
-        life_board = new LifeGame.Board()
+        lifeBoard = new LifeGame.Board()
         panel.repaint()
       })
       contents += new MenuItem(Action("Reset To Rpentomino") {
-        life_board = new LifeGame.Board()
+        lifeBoard = new LifeGame.Board()
         panel.repaint()
-        life_board = BoardConfiguration.rpentomino.clone()
+        lifeBoard = BoardConfiguration.rpentomino.clone()
       })
       contents += new MenuItem(Action("Reset To GliderGun") {
-        life_board = new LifeGame.Board()
+        lifeBoard = new LifeGame.Board()
         panel.repaint()
-        life_board = BoardConfiguration.gliderGun.clone()
+        lifeBoard = BoardConfiguration.gliderGun.clone()
       })
       contents += new MenuItem(Action("Reset To Random") {
-        life_board = new LifeGame.Board()
+        lifeBoard = new LifeGame.Board()
         panel.repaint()
-        life_board = BoardConfiguration.getRandom.clone()
+        lifeBoard = BoardConfiguration.getRandom.clone()
       })
       contents += new Separator
-      val a = new MenuItem(Action("zoom +") { if (plot_scale + 1 < hiZoomLimit) plot_scale += 1 })
-      val b = new MenuItem(Action("zoom -") { if (plot_scale - 1 > lowZoomLimit) plot_scale -= 1})
+      val a = new MenuItem(Action("zoom +") { if (plotScale + 1 < hiZoomLimit) plotScale += 1 })
+      val b = new MenuItem(Action("zoom -") { if (plotScale - 1 > lowZoomLimit) plotScale -= 1})
       val mutex = new ButtonGroup(a,b)
       contents ++= mutex.buttons
     }
@@ -187,10 +187,10 @@ object GameApp extends SimpleSwingApplication {
 
     private def onKey(k: Key.Value) = {
       k match {
-        case Key.Down  => y_offset -= plot_scale * offsetStep
-        case Key.Up    => y_offset += plot_scale * offsetStep
-        case Key.Left  => x_offset += plot_scale * offsetStep
-        case Key.Right => x_offset -= plot_scale * offsetStep
+        case Key.Down  => yOffset -= plotScale * offsetStep
+        case Key.Up    => yOffset += plotScale * offsetStep
+        case Key.Left  => xOffset += plotScale * offsetStep
+        case Key.Right => xOffset -= plotScale * offsetStep
         case _ => {}
       }
     }
@@ -199,17 +199,17 @@ object GameApp extends SimpleSwingApplication {
       val w: Int = size.width
       val h: Int = size.height
       // user to screen
-      val x2: Int = (x - x_offset) / plot_scale
-      val y2: Int = (y - y_offset) / plot_scale
+      val x2: Int = (x - xOffset) / plotScale
+      val y2: Int = (y - yOffset) / plotScale
       LifeGame.addMouseClick(x2, y2)
     }
 
     private def wheelMoved(r: Int) = {
-      if (plot_scale + r > lowZoomLimit && plot_scale + r < hiZoomLimit) {
-        plot_scale += r
-        x_offset = 0
-        y_offset = 0
-        println(s"plot scale: , $plot_scale")
+      if (plotScale + r > lowZoomLimit && plotScale + r < hiZoomLimit) {
+        plotScale += r
+        xOffset = 0
+        yOffset = 0
+        println(s"plot scale: , $plotScale")
       }
     }
 
@@ -225,17 +225,17 @@ object GameApp extends SimpleSwingApplication {
       val w:Int = size.width
       val h:Int = size.height
       val color             = 0x25   // 8 bit color value
-      val cellSizeInPixels  = 1 * plot_scale
+      val cellSizeInPixels  = 1 * plotScale
       val vCount            = (w / cellSizeInPixels) - 1
       val hCount            = (h / cellSizeInPixels) - 1
 
       for(xp <- 0 to vCount.toInt; yp <- 0 to hCount.toInt) {  // grid cells
-        val x: Int = plot_scale * xp
-        val y: Int = plot_scale * yp
+        val x: Int = plotScale * xp
+        val y: Int = plotScale * yp
 
         val index: Int = y*w + x
         if(index < data.length && index>= 0) {
-          for (l <- 1 to plot_scale) {  // grid x&y lines after zero point
+          for (l <- 1 to plotScale) {  // grid x&y lines after zero point
 
             if ((x + l) < w && (x + l) > 0) {          // horizontal
               data(y*w + x + l) = color
@@ -258,12 +258,12 @@ object GameApp extends SimpleSwingApplication {
       }
 
       var data: Array[Int] = Array.fill(w * h)(0)
-      if(plot_scale > lowGridZoomLimit) drawGrid(data)
+      if(plotScale > lowGridZoomLimit) drawGrid(data)
 
-      for((xp,yp) <- life_board) {
-        for( i <- 0 until plot_scale; j <- 0 until plot_scale) {
-          val x: Int =  (x_offset + xp*plot_scale + i).toInt
-          val y: Int =  (y_offset + yp*plot_scale + j).toInt
+      for((xp,yp) <- lifeBoard) {
+        for( i <- 0 until plotScale; j <- 0 until plotScale) {
+          val x: Int =  (xOffset + xp*plotScale + i).toInt
+          val y: Int =  (yOffset + yp*plotScale + j).toInt
           val index: Int = y*w + x
           if( index < data.length && index>= 0 && x < w && x > 0) {
             data( y*w + x) = Integer.MAX_VALUE
@@ -275,7 +275,7 @@ object GameApp extends SimpleSwingApplication {
     }
 
     def plotFPS(g: Graphics2D) {
-      show_fps match {
+      showFps match {
         case false =>
           // add blur behind FPS
           val xblur = size.width  - 130
@@ -295,7 +295,7 @@ object GameApp extends SimpleSwingApplication {
     }
 
     def plotMode(g: Graphics2D): Unit = {
-      if (show_mode) {
+      if (showMode) {
         g.setColor(Color.YELLOW)
         g.setFont(new Font("Monospaced", Font.BOLD, 20))
         g.drawString("Mode: " + mode.toString, 20, size.height - 10)

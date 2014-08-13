@@ -13,3 +13,7 @@ assemblySettings
 //assembledMappings in assembly :=
 
 //jarName in assembly := "something.jar"
+
+//excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+//  cp filter {_.data.getName == "akka-actor_2.10-2.3.2.jar"}
+//}
