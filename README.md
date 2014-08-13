@@ -1,7 +1,7 @@
 Yet another Game Of Life implementation in scala
 ================================================
 
-![alt tag](https://raw.github.com/strobe/YetAnotherScalaGameOfLife/main/Screenshot.png)
+![alt tag](https://github.com/strobe/YetAnotherScalaGameOfLife/blob/master/Screenshot.png)
 
 ##Modes:
 Drawing - simulation is paused and is possible to put live cells anywhere by mouse clicks
@@ -13,7 +13,7 @@ Place Live Cell on the board = MouseClick
 Change Zoom = Mouse Wheel (also available in Command Menu)
 
 Start simulation = menu Commands -> Start/Resume
-
+                                                                              t push origin
 Pause simulation = menu Commands -> Pause
 
 Save universe state  = menu Commands -> Save State
