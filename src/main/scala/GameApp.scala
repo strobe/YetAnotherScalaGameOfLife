@@ -7,7 +7,7 @@ import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.Panel
-import scala.swing.event.{ButtonClicked, MouseWheelMoved, MousePressed}
+import scala.swing.event._
 import scala.swing._
 import javax.swing.Timer
 
@@ -20,9 +20,10 @@ object Mode extends Enumeration {
 }
 
 object GameApp extends SimpleSwingApplication {
-
-
   import Mode._
+
+  var x_offset: Int = 0
+  var y_offset: Int = 0
 
   var delay_ms   = 20 // NOTE: delay between frames
   var framecount = 0
@@ -61,8 +62,6 @@ object GameApp extends SimpleSwingApplication {
   val repainter = new Timer(delay_ms, new ActionListener {
     def actionPerformed(e: ActionEvent) {
       panel.repaint()
-//      if (isDrawMode)        { life_board = LifeGame.computePaintedCells(life_board)   }
-//      else if (isSimStarted) { life_board = LifeGame.computeNextGeneration(life_board) }
 
       mode match {
         case Drawing    => life_board = LifeGame.computePaintedCells(life_board)
@@ -86,14 +85,14 @@ object GameApp extends SimpleSwingApplication {
 
   val menu = new MenuBar {
     def write(o: LifeGame.Board) {
-        val output = new ObjectOutputStream(new FileOutputStream("statefile.obj"))
+        val output = new ObjectOutputStream(new FileOutputStream(saveFilename))
         output.writeObject(o)
         output.close()
       }
 
     def read() = {
       try {
-        val input = new ObjectInputStream(new FileInputStream("statefile.obj"))
+        val input = new ObjectInputStream(new FileInputStream(saveFilename))
         val obj = input.readObject()
         input.close()
         obj
@@ -109,7 +108,13 @@ object GameApp extends SimpleSwingApplication {
       contents += new MenuItem(Action("Load State") {
         life_board = try { read().asInstanceOf[LifeGame.Board] }
       })
-
+      contents += new Separator
+      contents += new MenuItem(Action("Reset Board Offset") {
+        x_offset = 0
+        y_offset = 0
+        panel.repaint()
+      })
+      contents += new Separator
       contents += new MenuItem(Action("Reset Board") {
         life_board = new LifeGame.Board()
         panel.repaint()
@@ -169,25 +174,42 @@ object GameApp extends SimpleSwingApplication {
     preferredSize = new Dimension(640, 480)
     listenTo(mouse.clicks)
     listenTo(mouse.wheel)
+    listenTo(keys)
+    focusable = true
+    requestFocus
 
 
     reactions += {
       case MousePressed(_, p, _, _, _) => mouseClick(p.x, p.y)
       case MouseWheelMoved(_, _, _, r) => wheelMoved(r)
+      case KeyPressed(_, k, _, _)      => onKey(k)
+    }
+
+    private def onKey(k: Key.Value) = {
+      k match {
+        case Key.Down  => y_offset -= plot_scale * offsetStep
+        case Key.Up    => y_offset += plot_scale * offsetStep
+        case Key.Left  => x_offset += plot_scale * offsetStep
+        case Key.Right => x_offset -= plot_scale * offsetStep
+        case _ => {}
+      }
     }
 
     private def mouseClick(x: Int, y: Int) {
-      val w:Int = size.width
-      val h:Int = size.height
+      val w: Int = size.width
+      val h: Int = size.height
       // user to screen
-      val x2: Int = (x - (x_offset * w).toInt) / plot_scale
-      val y2: Int = (y - (y_offset * h).toInt) / plot_scale
+      val x2: Int = (x - x_offset) / plot_scale
+      val y2: Int = (y - y_offset) / plot_scale
       LifeGame.addMouseClick(x2, y2)
     }
 
     private def wheelMoved(r: Int) = {
       if (plot_scale + r > lowZoomLimit && plot_scale + r < hiZoomLimit) {
         plot_scale += r
+        x_offset = 0
+        y_offset = 0
+        println(s"plot scale: , $plot_scale")
       }
     }
 
@@ -211,13 +233,16 @@ object GameApp extends SimpleSwingApplication {
         val x: Int = plot_scale * xp
         val y: Int = plot_scale * yp
 
-        for (l <- 1 to plot_scale) {  // grid x&y lines after zero point
+        val index: Int = y*w + x
+        if(index < data.length && index>= 0) {
+          for (l <- 1 to plot_scale) {  // grid x&y lines after zero point
 
-          if ((x + l) < w) {          // horizontal
-            data(y*w + x + l) = color
-          }
-          if ((y + l) < h) {          // vertical
-            data((y+l)*w + x) = color
+            if ((x + l) < w && (x + l) > 0) {          // horizontal
+              data(y*w + x + l) = color
+            }
+            if ((y + l) < h - 1 && (x + l) < w && (x + l) > 0) {          // vertical
+              data((y+l)*w + x) = color
+            }
           }
         }
       }
@@ -233,14 +258,14 @@ object GameApp extends SimpleSwingApplication {
       }
 
       var data: Array[Int] = Array.fill(w * h)(0)
-      if(plot_scale > lowGridZoomLinit) drawGrid(data)
+      if(plot_scale > lowGridZoomLimit) drawGrid(data)
 
       for((xp,yp) <- life_board) {
         for( i <- 0 until plot_scale; j <- 0 until plot_scale) {
-          val x: Int =  (x_offset*w).toInt + xp*plot_scale + i
-          val y: Int =  (y_offset*h).toInt + yp*plot_scale + j
+          val x: Int =  (x_offset + xp*plot_scale + i).toInt
+          val y: Int =  (y_offset + yp*plot_scale + j).toInt
           val index: Int = y*w + x
-          if( index < data.length && index>= 0) {
+          if( index < data.length && index>= 0 && x < w && x > 0) {
             data( y*w + x) = Integer.MAX_VALUE
           }
         }

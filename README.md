@@ -1,6 +1,10 @@
 Yet another Game Of Life implementation in scala
 ================================================
 
+##Modes:
+Drawing - simulation is paused and is possible to put live cells anywhere by mouse clicks
+Simulation - game is running, is possible to put live cells by mouse clicks but it's ill die quickly  
+
 ##Controls:
 Place Live Cell on the board = MouseClick
 
@@ -14,7 +18,11 @@ Save universe state  = menu Commands -> Save State
 
 Load universe state  = menu Commands -> Load State 
 
-Reset universe state = menu Commands -> Reset 
+Reset state to default = menu Commands -> Reset Board 
+
+Reset offset =  menu Commands -> Reset Board Offset
+
+Offset board = keyboard aroows buttons - Up, Down, Left, Right
 
 ## Compiled 
 see repository releases page
