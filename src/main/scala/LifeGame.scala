@@ -56,6 +56,15 @@ object LifeGame {
     newBoard
   }
 
+  def computePaintedCells(board: Board): Board = {
+
+    // adding mouse clicks cells
+    for (i <- mouseClicks) {
+      board.add(i)
+    }
+    board
+  }
+
   def addMouseClick(x: Int, y: Int) = {
     mouseClicks = mouseClicks ++ List((x, y))
   }

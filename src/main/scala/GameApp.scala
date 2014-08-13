@@ -7,18 +7,24 @@ import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.Panel
-import scala.swing.Rectangle
-import scala.swing.event.{ MouseWheelMoved, MousePressed}
+import scala.swing.event.{ButtonClicked, MouseWheelMoved, MousePressed}
 import scala.swing._
 import javax.swing.Timer
 
 import java.awt.image._
-
-
 import Constants._
 
+object Mode extends Enumeration {
+  type Mode = Value
+  val Simulation, Drawing = Value
+}
+
 object GameApp extends SimpleSwingApplication {
-  var delay_ms   = 1 // NOTE: delay between frames
+
+
+  import Mode._
+
+  var delay_ms   = 20 // NOTE: delay between frames
   var framecount = 0
   var fps        = 0
   var image: BufferedImage = null
@@ -30,17 +36,18 @@ object GameApp extends SimpleSwingApplication {
 
   var plot_scale: Int = 7
 
-  var isStarted: Boolean = false
+  var isSimStarted: Boolean = false
+  var mode: Mode            = Drawing
 
 
   def top = new MainFrame {
-    title = "YetAnotherScalaGameOfLife"
-    menuBar = menu
+    title    = "YetAnotherScalaGameOfLife"
+    menuBar  = menu
     contents = panel
   }
 
   def initializeLife() {
-    life_board = BoardConfiguration.gliderGUn.clone()
+    life_board = BoardConfiguration.gliderGun.clone()
   }
 
   def initializeConvolveKernel() {
@@ -54,7 +61,13 @@ object GameApp extends SimpleSwingApplication {
   val repainter = new Timer(delay_ms, new ActionListener {
     def actionPerformed(e: ActionEvent) {
       panel.repaint()
-      if (isStarted) { life_board = LifeGame.computeNextGeneration(life_board) }
+//      if (isDrawMode)        { life_board = LifeGame.computePaintedCells(life_board)   }
+//      else if (isSimStarted) { life_board = LifeGame.computeNextGeneration(life_board) }
+
+      mode match {
+        case Drawing    => life_board = LifeGame.computePaintedCells(life_board)
+        case Simulation => life_board = LifeGame.computeNextGeneration(life_board)
+      }
     }
   })
 
@@ -90,13 +103,6 @@ object GameApp extends SimpleSwingApplication {
     }
 
     contents += new Menu("Commands") {
-      contents += new MenuItem(Action("Start/Resume") {
-        isStarted = true
-      })
-      contents += new MenuItem(Action("Pause") {
-        isStarted = false
-      })
-      contents += new Separator
       contents += new MenuItem(Action("Save State"){
         write(life_board)
       })
@@ -110,11 +116,50 @@ object GameApp extends SimpleSwingApplication {
         initializeLife()
       })
       contents += new Separator
-      val a = new MenuItem(Action("zoom: 2") { plot_scale = 2 })
-      val b = new MenuItem(Action("zoom: 5") { plot_scale = 5 })
-      val c = new MenuItem(Action("zoom: 7") { plot_scale = 7 })
-      val mutex = new ButtonGroup(a,b,c)
+      contents += new MenuItem(Action("Clear Board") {
+        life_board = new LifeGame.Board()
+        panel.repaint()
+      })
+      contents += new MenuItem(Action("Reset To Rpentomino") {
+        life_board = new LifeGame.Board()
+        panel.repaint()
+        life_board = BoardConfiguration.rpentomino.clone()
+      })
+      contents += new MenuItem(Action("Reset To GliderGun") {
+        life_board = new LifeGame.Board()
+        panel.repaint()
+        life_board = BoardConfiguration.gliderGun.clone()
+      })
+      contents += new MenuItem(Action("Reset To Random") {
+        life_board = new LifeGame.Board()
+        panel.repaint()
+        life_board = BoardConfiguration.getRandom.clone()
+      })
+      contents += new Separator
+      val a = new MenuItem(Action("zoom +") { if (plot_scale + 1 < hiZoomLimit) plot_scale += 1 })
+      val b = new MenuItem(Action("zoom -") { if (plot_scale - 1 > lowZoomLimit) plot_scale -= 1})
+      val mutex = new ButtonGroup(a,b)
       contents ++= mutex.buttons
+    }
+    contents += new Menu("Mode") {
+      val a = new CheckMenuItem("Drawing")
+      val b = new CheckMenuItem("Simulation")
+      val mutex = new ButtonGroup(a,b)
+      mutex.select(a)
+      contents ++= mutex.buttons
+      listenTo(a,b)
+      reactions += { 
+        case ButtonClicked(`a`) => {
+          mode = Mode.Drawing
+          isSimStarted = false
+        }
+      }
+      reactions += {
+        case ButtonClicked(`b`) => {
+          mode = Mode.Simulation
+          isSimStarted = true
+        } 
+      }
     }
   }
 
@@ -141,8 +186,6 @@ object GameApp extends SimpleSwingApplication {
     }
 
     private def wheelMoved(r: Int) = {
-      val hiZoomLimit = 8
-      val lowZoomLimit = 0
       if (plot_scale + r > lowZoomLimit && plot_scale + r < hiZoomLimit) {
         plot_scale += r
       }
@@ -150,33 +193,11 @@ object GameApp extends SimpleSwingApplication {
 
     override def paintComponent(g: Graphics2D) {
       g.drawImage(image, 0, 0, null)
-//      plotRasterGrid(g)
       drawLife()
-      //plotGrid(g)
       plotFPS(g)
+      plotMode(g)
       framecount += 1
     }
-
-
-//    def plotGrid(g: Graphics2D) {
-//      val w:Int = size.width
-//      val h:Int = size.height
-//
-//      val sizeInPixels  = 1*plot_scale
-//      val vCount = w / sizeInPixels
-//      val hCount = h / sizeInPixels
-//
-//
-//      g.setColor(Color.darkGray)
-//
-//      for(i <- 0 to vCount.toInt; j <- 0 to hCount.toInt)
-//      {
-//        val grid: Rectangle = new Rectangle((x_offset*w).toInt + i*plot_scale * sizeInPixels/plot_scale,
-//                                            (x_offset*w).toInt + j*plot_scale * sizeInPixels/plot_scale,
-//                                             sizeInPixels, sizeInPixels)
-//        g.draw(grid)
-//      }
-//    }
 
     def drawGrid(data: Array[Int]) = {
       val w:Int = size.width
@@ -186,15 +207,16 @@ object GameApp extends SimpleSwingApplication {
       val vCount            = (w / cellSizeInPixels) - 1
       val hCount            = (h / cellSizeInPixels) - 1
 
-      for(i <- 0 to vCount.toInt; j <- 0 to hCount.toInt) {  // grid cells
-        val x: Int = plot_scale * i
-        val y: Int = plot_scale * j
+      for(xp <- 0 to vCount.toInt; yp <- 0 to hCount.toInt) {  // grid cells
+        val x: Int = plot_scale * xp
+        val y: Int = plot_scale * yp
 
-        for (l <- 0 to plot_scale) {  // grid x&y lines after zero point
-          if ((x + l) < w - 1) {      // horizontal
+        for (l <- 1 to plot_scale) {  // grid x&y lines after zero point
+
+          if ((x + l) < w) {          // horizontal
             data(y*w + x + l) = color
           }
-          if ((y + l) < h - 1) {      // vertical
+          if ((y + l) < h) {          // vertical
             data((y+l)*w + x) = color
           }
         }
@@ -211,9 +233,9 @@ object GameApp extends SimpleSwingApplication {
       }
 
       var data: Array[Int] = Array.fill(w * h)(0)
-      drawGrid(data)
+      if(plot_scale > lowGridZoomLinit) drawGrid(data)
 
-      for( (xp,yp) <- life_board) {
+      for((xp,yp) <- life_board) {
         for( i <- 0 until plot_scale; j <- 0 until plot_scale) {
           val x: Int =  (x_offset*w).toInt + xp*plot_scale + i
           val y: Int =  (y_offset*h).toInt + yp*plot_scale + j
@@ -231,18 +253,27 @@ object GameApp extends SimpleSwingApplication {
       show_fps match {
         case false =>
           // add blur behind FPS
-          val xblur = size.width - 130
-          val yblur = size.height - 32;
-          val bc = image.getSubimage(xblur, yblur, 115, 32);
-          val bs = new BufferedImage(bc.getWidth(), bc.getHeight(),
-            BufferedImage.TYPE_BYTE_GRAY);
-          convolve.filter(bc, bs);
-          g.drawImage(bs, xblur, yblur , null);
+          val xblur = size.width  - 130
+          val yblur = size.height - 32
+          val bc = image.getSubimage(xblur, yblur, 115, 32)
+          val bs = new BufferedImage(bc.getWidth(),
+                                     bc.getHeight(),
+                                     BufferedImage.TYPE_BYTE_GRAY)
+          convolve.filter(bc, bs)
+          g.drawImage(bs, xblur, yblur , null)
         case true =>
           // add FPS text; case fallthough is deliberate
-          g.setColor(Color.RED);
-          g.setFont(new Font("Monospaced", Font.BOLD, 20));
+          g.setColor(Color.RED)
+          g.setFont(new Font("Monospaced", Font.BOLD, 20))
           g.drawString("FPS: " + fps, size.width - 120, size.height - 10);
+      }
+    }
+
+    def plotMode(g: Graphics2D): Unit = {
+      if (show_mode) {
+        g.setColor(Color.YELLOW)
+        g.setFont(new Font("Monospaced", Font.BOLD, 20))
+        g.drawString("Mode: " + mode.toString, 20, size.height - 10)
       }
     }
 

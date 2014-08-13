@@ -33,7 +33,7 @@ object BoardConfiguration {
     (math.pow(2, 64).toInt, math.pow(2, 64).toInt),
     (0, math.pow(2, 64).toInt)) ++ getRandom)
 
-  val gliderGUn = buildBoard(List(
+  val gliderGun = buildBoard(List(
     (1,5),(1,4),
     (2,5),(2,4),
     (11,6),(11,5),(11,4),
