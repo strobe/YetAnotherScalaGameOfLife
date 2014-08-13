@@ -1,6 +1,8 @@
 Yet another Game Of Life implementation in scala
 ================================================
 
+![alt tag](https://raw.github.com/strobe/YetAnotherScalaGameOfLife/main/Screenshot.png)
+
 ##Modes:
 Drawing - simulation is paused and is possible to put live cells anywhere by mouse clicks
 Simulation - game is running, is possible to put live cells by mouse clicks but it's ill die quickly  
